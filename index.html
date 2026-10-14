@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Учебное приложение</title>
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --bg: #f3f4f6;
+        --card-bg: #ffffff;
+        --text: #111827;
+        --success: #10b981;
+        --error: #ef4444;
+      }
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        padding: 20px;
+        margin: 0;
+        background-color: var(--bg);
+        color: var(--text);
+      }
+
+      /* Исправленный стиль для страниц */
+      .page {
+        width: 100%;
+        margin: 0 auto;
+        min-height: 80vh;
+        display: none; /* По умолчанию все страницы скрыты */
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .active {
+        display: flex !important; /* Только активная страница показывается */
+      }
+
+      header {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 24px;
+      }
+      h2 {
+        margin: 0 0 16px 0;
+        font-weight: 600;
+        color: var(--primary);
+      }
+      
+      .class-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        width: 100%;
+      }
+      .class-btn {
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: var(--card-bg);
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .class-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: var(--primary);
+      }
+      .class-btn.selected {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+        width: 100%;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 15px 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: var(--primary);
+      }
+      .card-number {
+        font-size: 32px;
+        font-weight: bold;
+        color: var(--primary);
+        line-height: 1;
+      }
+      .card-status {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6b7280;
+      }
+
+      input, textarea {
+        width: 100%;
+        padding: 14px;
+        margin-top: 8px;
+        box-sizing: border-box;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: var(--card-bg);
+        font-size: 16px;
+        outline: none;
+      }
+      input:focus, textarea:focus {
+        border-color: var(--primary);
+      }
+      label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: #374151;
+      }
+
+      .question-block {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 8px;
+        border-left: 5px solid var(--primary);
+        width: 100%;
+      }
+      .question-text {
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+        font-size: 15px;
+      }
+      textarea.work-textarea {
+        width: 100%;
+        min-height: 70px;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        resize: vertical;
+      }
+      
+      .timer-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 20px auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+      }
+      #timer-fill {
+        height: 20px;
+        background: var(--primary);
+        width: 100%;
+        transition: width 1s linear;
+      }
+      #timer-text {
+        text-align: center;
+        padding: 8px;
+        font-weight: bold;
+      }
+
+      .actions {
+        margin-top: 30px;
+        text-align: center;
+      }
+      .btn-primary {
+        padding: 12px 24px;
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        font-size: 16px;
+      }
+      .btn-primary:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .btn-back {
+        padding: 10px 20px;
+        background: transparent;
+        color: #555;
+        text-decoration: none;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      #result-box {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        display: none;
+      }
+      .result-success {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .result-fail {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Страница 1: Выбор класса -->
+    <div id="page-1" class="page active">
+      <header><h2>Выберите класс</h2></header>
+      <div class="class-buttons">
+        <button class="class-btn" onclick="selectClass(8)">8 класс</button>
+        <button class="class-btn" onclick="selectClass(9)">9 класс</button>
+        <button class="class-btn" onclick="selectClass(10)">10 класс</button>
+        <button class="class-btn" onclick="selectClass(11)">11 класс</button>
+      </div>
+    </div>
+
+    <!-- Страница 2: Выбор темы -->
+    <div id="page-2" class="page">
+      <header><h2 id="topic-header">Темы</h2></header>
+      <div id="topics-list" class="cards-grid"></div>
+      <button class="btn-back" onclick="goBack()">← Назад</button>
+    </div>
+
+    <!-- Страница 3: Карточки заданий -->
+    <div id="page-3" class="page">
+      <header><h2 id="topic-header">Задания по теме</h2></header>
+      <div id="cards-container" class="cards-grid"></div>
+      <button class="btn-back" onclick="backToTopics()">← К темам</button>
+    </div>
+
+    <!-- Страница 4: Регистрация ученика -->
+    <div id="page-4" class="page">
+      <header><h2>Регистрация</h2></header>
+      <div style="width: 100%; max-width: 400px;">
+        <label>Фамилия и имя ученика</label>
+        <input type="text" id="student-name" placeholder="Иванов Иван" />
+        <label>Буква класса</label>
+        <input type="text" id="class-letter" placeholder="А" maxlength="2" />
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="startWork()">Начать работу</button>
+        <button class="btn-back" onclick="backFromRegistration()">← Назад</button>
+      </div>
+    </div>
+
+    <!-- Страница 5: Сама работа -->
+    <div id="page-5" class="page">
+      <header>
+        <h2>Выполнение работы</h2>
+        <div class="timer-container">
+          <div id="timer-fill"></div>
+          <div id="timer-text">Осталось времени: 10:00</div>
+        </div>
+      </header>
+      
+      <div id="questions-area"></div>
+      
+      <div class="actions">
+        <button id="submit-btn" class="btn-primary" onclick="submitWork()">Сдать работу</button>
+        <button id="sync-btn" class="btn-back" onclick="syncOfflineBuffer()">🔄 Синхронизировать (офлайн‑работы)</button>
+        <button id="back-from-questions" class="btn-back" style="display:none;" onclick="backFromQuestions()">← Назад к карточкам</button>
+      </div>
+
+      <div id="result-box"></div>
+    </div>
+
+    <script>
+      // !!! ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT (заканчивается на /exec) !!!
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJexBZPlWtB64GJe7KL_1ULY3vGKJadQkkwVs6Vx1I3FFV14HtMfHIsl-tbo7OYqqI/exec';
+
+      let currentClass = null;
+      const topics = {
+        8: ['Тема1', 'Тема2', 'Тема3'],
+        9: ['Тема1', 'Тема2', 'Тема3'],
+        10: ['Тема1', 'Тема2', 'Тема3'],
+        11: ['Тема1', 'Тема2', 'Тема3']
+      };
+
+      const questionsDB = {
+  'Тема1': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема2': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема3': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема1': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема2': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема3': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема1': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема2': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема3': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема1': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема2': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ],
+  'Тема3': [
+    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
+    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
+  ]
+};
+
+
+      function isAnswerCorrect(question, answer) {
+        return answer && answer.trim() !== '';
+      }
+
+      function selectClass(cls) {
+        console.log('Кнопка нажата, класс:', cls);
+        currentClass = cls;
+        
+        document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('selected'));
+        
+        const btn = Array.from(document.querySelectorAll('.class-btn')).find(b => b.innerText.startsWith(cls + ' '));
+        if (btn) btn.classList.add('selected');
+
+        setTimeout(() => {
+          renderTopics();
+          showPage('page-2');
+        }, 300);
+      }
+
+      function goBack() { showPage('page-1'); }
+      function backToTopics() { showPage('page-2'); }
+            function backFromRegistration() { showPage('page-3'); }
+
+      function backFromQuestions() {
+        document.getElementById('back-from-questions').style.display = 'none';
+        showPage('page-3');
+      }
+
+      function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const page = document.getElementById(pageId);
+        if (page) {
+          page.classList.add('active');
+          // Плавная прокрутка вверх при переключении страницы
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          console.log('Показана страница:', pageId);
+        } else {
+          console.error('Страница не найдена:', pageId);
+        }
+      }
+
+      let timerInterval;
+      let timeLeft = 600;
+
+      function startTimer(seconds) {
+        timeLeft = seconds;
+        const timerFill = document.getElementById('timer-fill');
+        const timerText = document.getElementById('timer-text');
+        if (!timerFill || !timerText) return;
+
+        timerInterval = setInterval(() => {
+          const minutes = Math.floor(timeLeft / 60);
+          const secs = timeLeft % 60;
+          timerText.textContent = `Осталось времени: ${minutes}:${secs.toString().padStart(2,'0')}`;
+          const percent = (timeLeft / seconds) * 100;
+          timerFill.style.width = percent + '%';
+
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert('Время вышло! Нажмите "Сдать работу".');
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) submitBtn.click();
+          }
+          timeLeft--;
+        }, 1000);
+      }
+
+      function renderTopics() {
+        const list = document.getElementById('topics-list');
+        if (!list) return;
+        list.innerHTML = '';
+        const tList = topics[currentClass] || [];
+        tList.forEach(t => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerText = t;
+          div.onclick = () => selectTopic(t);
+          list.appendChild(div);
+        });
+      }
+
+      let selectedTopic = '';
+
+      function selectTopic(topic) {
+        selectedTopic = topic;
+        renderCards();
+        showPage('page-3');
+      }
+
+      function renderCards() {
+        const container = document.getElementById('cards-container');
+        if (!container) return;
+        container.innerHTML = '';
+        const header = document.getElementById('topic-header');
+        if (header) header.innerText = 'Тема: ' + selectedTopic;
+
+        for (let i = 1; i <= 10; i++) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <span class="card-number">${i}</span>
+            <span class="card-status">Жми, чтобы начать</span>
+          `;
+          card.onclick = () => openCard(i);
+          container.appendChild(card);
+        }
+      }
+
+      function openCard(cardNum) {
+        showPage('page-4');
+      }
+
+      function startWork() {
+        const name = document.getElementById('student-name')?.value.trim();
+        const letter = document.getElementById('class-letter')?.value.trim();
+
+        if (!name || !letter) {
+          alert('Пожалуйста, заполните все поля.');
+          return;
+        }
+
+        generateQuestions();
+        startTimer(600);
+        showPage('page-5');
+      }
+
+      function generateQuestions() {
+        const area = document.getElementById('questions-area');
+        if (!area) return;
+        area.innerHTML = '';
+        const qList = questionsDB[selectedTopic] || [];
+
+        const shuffled = [...qList].sort(() => Math.random() - 0.5).slice(0, 6);
+
+        shuffled.forEach((q, idx) => {
+          const block = document.createElement('div');
+          block.className = 'question-block';
+          block.innerHTML = `
+            <span class="question-text">Вопрос ${idx + 1}: ${q}</span>
+            <textarea class="work-textarea" data-question="${q}" placeholder="Напишите ответ..."></textarea>
+          `;
+          area.appendChild(block);
+        });
+      }
+
+                  async function submitWork() {
+        clearInterval(timerInterval);
+
+        const blocks = document.querySelectorAll('.question-block');
+        let correctCount = 0;
+        let totalQuestions = blocks.length;
+
+        blocks.forEach(block => {
+          const textarea = block.querySelector('textarea');
+          if (!textarea) return;
+          const answer = textarea.value.trim();
+          if (answer !== '') correctCount++;
+        });
+
+        const studentName = (document.getElementById('student-name').value || 'Неизвестный').trim();
+        const classLetter = (document.getElementById('class-letter').value || '').trim();
+        const className = currentClass ? currentClass + ' класс' : 'Не указан';
+        const scoreString = `${correctCount}/${totalQuestions}`;
+
+        // Формируем объект с данными (payload)
+        const payload = {
+          student: studentName,
+          'class': `${className} ${classLetter}`.trim(),
+          topic: selectedTopic || 'Тема не выбрана',
+          score: scoreString
+        };
+
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Отправка...';
+        }
+
+        try {
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: buildFormData(payload)
+          });
+
+          const result = await response.json();
+
+          if (result.status === 'ok') {
+            const resBox = document.getElementById('result-box');
+            resBox.style.display = 'block';
+            resBox.className = 'result-success';
+            resBox.innerHTML = `<h3>Работа успешно сдана!</h3><p>Результаты сохранены в общей таблице учителя.</p>`;
+            if (submitBtn) submitBtn.style.display = 'none';
+          } else {
+            throw new Error('Ошибка сервера');
+          }
+        } catch (err) {
+          console.error('Не удалось отправить (возможно, нет сети):', err);
+          // Сохраняем в буфер, если отправка не удалась
+          saveToBuffer(payload);
+
+          const resBox = document.getElementById('result-box');
+          resBox.style.display = 'block';
+          resBox.className = 'result-fail';
+          resBox.innerHTML = `
+            <h3>Не удалось отправить сейчас</h3>
+            <p>Нет интернета или ошибка сети. Работа сохранена в буфер.</p>
+            <p style="color: #555; font-size: 14px;">Данные отправятся автоматически, когда появится связь, или нажмите кнопку «Синхронизировать».</p>
+          `;
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Сдать работу';
+          }
+        }
+      }
+         // Сохраняем неотправленную работу в localStorage
+function saveToBuffer(payload) {
+  const buffer = JSON.parse(localStorage.getItem('offlineWorkBuffer') || '[]');
+  buffer.push({
+    id: Date.now(),
+    payload: payload,
+    timestamp: new Date().toISOString()
+  });
+  localStorage.setItem('offlineWorkBuffer', JSON.stringify(buffer));
+  console.log('Работа сохранена в офлайн-буфер:', payload);
+}
+
+// Пытаемся отправить все из буфера
+async function syncOfflineBuffer() {
+  const btn = document.getElementById('sync-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Синхронизация...';
+  }
+
+  const bufferStr = localStorage.getItem('offlineWorkBuffer');
+  const buffer = bufferStr ? JSON.parse(bufferStr) : [];
+
+  // Если буфер пуст — сразу выходим, чтобы не слать лишние запросы
+  if (buffer.length === 0) {
+    console.log('Буфер пуст, синхронизация не требуется');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Синхронизировать';
+    }
+    return;
+  }
+
+  const successIds = [];
+
+  for (const item of buffer) {
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        body: buildFormData(item.payload)
+      });
+      const result = await response.json();
+      if (result.status === 'ok') {
+        successIds.push(item.id);
+        console.log('Успешно отправлена работа из буфера (id:', item.id, ')');
+      } else {
+        console.warn('Сервер вернул ошибку для работы из буфера:', result);
+      }
+    } catch (err) {
+      console.warn('Не удалось отправить работу из буфера (нет сети):', err);
+      break; // Прерываем, чтобы не спамить запросами, если сети нет
+    }
+  }
+
+  if (successIds.length > 0) {
+    const remaining = buffer.filter(i => !successIds.includes(i.id));
+    localStorage.setItem('offlineWorkBuffer', JSON.stringify(remaining));
+    console.log('Буфер очищен от успешно отправленных работ.');
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Синхронизировать';
+  }
+}
+
+
+// Вспомогательная функция: превращает payload в FormData (как мы делали раньше)
+function buildFormData(payload) {
+  const fd = new FormData();
+  fd.append('student', payload.student);
+  fd.append('class', payload['class']);
+  fd.append('topic', payload.topic);
+  fd.append('score', payload.score);
+  return fd;
+}
+window.addEventListener('DOMContentLoaded', () => {
+  syncOfflineBuffer(); // Пытаемся сразу отправить всё, что накопилось
+});
+    </script>
+  </body>
+</html>
