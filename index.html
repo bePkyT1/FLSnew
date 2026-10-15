@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Учебное приложение</title>
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --bg: #f3f4f6;
+        --card-bg: #ffffff;
+        --text: #111827;
+        --success: #10b981;
+        --error: #ef4444;
+      }
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        padding: 20px;
+        margin: 0;
+        background-color: var(--bg);
+        color: var(--text);
+      }
+
+      .page {
+        width: 100%;
+        margin: 0 auto;
+        min-height: 80vh;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .active {
+        display: flex !important;
+      }
+
+      header {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 24px;
+      }
+      h2 {
+        margin: 0 0 16px 0;
+        font-weight: 600;
+        color: var(--primary);
+      }
+      
+      .class-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        width: 100%;
+      }
+      .class-btn {
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: var(--card-bg);
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .class-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: var(--primary);
+      }
+      .class-btn.selected {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+        width: 100%;
+      }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 15px 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: var(--primary);
+      }
+      .card-number {
+        font-size: 32px;
+        font-weight: bold;
+        color: var(--primary);
+        line-height: 1;
+      }
+      .card-status {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6b7280;
+      }
+
+      input, textarea {
+        width: 100%;
+        padding: 14px;
+        margin-top: 8px;
+        box-sizing: border-box;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: var(--card-bg);
+        font-size: 16px;
+        outline: none;
+      }
+      input:focus, textarea:focus {
+        border-color: var(--primary);
+      }
+      label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 6px;
+        color: #374151;
+      }
+
+      .question-block {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 8px;
+        border-left: 5px solid var(--primary);
+        width: 100%;
+      }
+      .question-text {
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+        font-size: 15px;
+      }
+      textarea.work-textarea {
+        width: 100%;
+        min-height: 70px;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        resize: vertical;
+      }
+      
+      /* Стили для ошибок в полях */
+      .has-error textarea { border-color: var(--error); }
+      .error-msg {
+        color: var(--error);
+        font-size: 13px;
+        margin-top: 5px;
+        display: none;
+      }
+      .has-error .error-msg { display: block; }
+
+      .timer-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 20px auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+      }
+      #timer-fill {
+        height: 20px;
+        background: var(--primary);
+        width: 100%;
+        transition: width 1s linear;
+      }
+      #timer-text {
+        text-align: center;
+        padding: 8px;
+        font-weight: bold;
+      }
+
+      .actions {
+        margin-top: 30px;
+        text-align: center;
+      }
+      .btn-primary {
+        padding: 12px 24px;
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        font-size: 16px;
+      }
+      .btn-primary:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .btn-back {
+        padding: 10px 20px;
+        background: transparent;
+        color: #555;
+        text-decoration: none;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      #result-area {
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 8px;
+        display: none;
+        border: 1px solid transparent;
+      }
+      .result-success { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+      .result-fail { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+
+      #back-to-cards-btn {
+        display: none;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Страница 1: Выбор класса -->
+    <div id="page-1" class="page active">
+      <header><h2>Выберите класс</h2></header>
+      <div class="class-buttons">
+        <button class="class-btn" onclick="selectClass(8)">8 класс</button>
+        <button class="class-btn" onclick="selectClass(9)">9 класс</button>
+        <button class="class-btn" onclick="selectClass(10)">10 класс</button>
+        <button class="class-btn" onclick="selectClass(11)">11 класс</button>
+      </div>
+    </div>
+
+    <!-- Страница 2: Выбор темы -->
+    <div id="page-2" class="page">
+      <header><h2 id="topic-header">Темы</h2></header>
+      <div id="topics-list" class="cards-grid"></div>
+      <button class="btn-back" onclick="goBack()">← Назад</button>
+    </div>
+
+    <!-- Страница 3: Карточки заданий -->
+    <div id="page-3" class="page">
+      <header><h2 id="topic-header">Задания по теме</h2></header>
+      <div id="cards-container" class="cards-grid"></div>
+      <button class="btn-back" onclick="backToTopics()">← К темам</button>
+    </div>
+
+    <!-- Страница 4: Регистрация ученика -->
+    <div id="page-4" class="page">
+      <header><h2>Регистрация</h2></header>
+      <div style="width: 100%; max-width: 400px;">
+        <label>Фамилия и имя ученика</label>
+        <input type="text" id="student-name" placeholder="Иванов Иван" />
+        <label>Буква класса</label>
+        <input type="text" id="class-letter" placeholder="А" maxlength="2" />
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="startWork()">Начать работу</button>
+        <button class="btn-back" onclick="backFromRegistration()">← Назад</button>
+      </div>
+    </div>
+
+    <!-- Страница 5: Сама работа -->
+    <div id="page-5" class="page">
+      <header>
+        <h2>Выполнение работы</h2>
+        <div class="timer-container">
+          <div id="timer-fill"></div>
+          <div id="timer-text">Осталось времени: 10:00</div>
+        </div>
+      </header>
+      
+      <div id="questions-area"></div>
+      
+      <div class="actions">
+        <p id="error-summary" style="color: var(--error); display:none; margin-bottom:10px;">Не заполнены все поля. Проверьте вопросы ниже.</p>
+        <button id="submit-btn" class="btn-primary" onclick="submitWork()">Сдать работу</button>
+        <button id="sync-btn" class="btn-back" onclick="syncOfflineBuffer()">🔄 Синхронизировать (офлайн‑работы)</button>
+        <button id="back-from-questions" class="btn-back" style="display:none;" onclick="backFromQuestions()">← Назад к карточкам</button>
+      </div>
+
+      <!-- Блок с результатами проверки -->
+      <div id="result-area"></div>
+      <button id="back-to-cards-btn" class="btn-back" onclick="returnToCards()">Вернуться к карточкам</button>
+    </div>
+
+    <script>
+      // !!! ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT (заканчивается на /exec) !!!
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0XjKHcsikQC_mj16_wCbY8DATUpE11mSdVIG8EV7seW068u0iMDZjGCs2pKvCtfP_/exec';
+
+      let currentClass = null;
+      const topics = {
+        8: ['Тема1', 'Тема2', 'Тема3'],
+        9: ['Тема1', 'Тема2', 'Тема3'],
+        10: ['Тема1', 'Тема2', 'Тема3'],
+        11: ['Тема1', 'Тема2', 'Тема3']
+      };
+
+      // Исправленные вопросы и правильные ответы (без дублей)
+      const questionsDB = {
+        'Тема1': [
+          { q: 'Вопрос 1', a: 'Ответ 1' },
+          { q: 'Вопрос 2', a: 'Ответ 2' },
+          { q: 'Вопрос 3', a: 'Ответ 3' },
+          { q: 'Вопрос 4', a: 'Ответ 4' },
+          { q: 'Вопрос 5', a: 'Ответ 5' },
+          { q: 'Вопрос 6', a: 'Ответ 6' },
+          { q: 'Вопрос 7', a: 'Ответ 7' },
+          { q: 'Вопрос 8', a: 'Ответ 8' },
+          { q: 'Вопрос 9', a: 'Ответ 9' },
+          { q: 'Вопрос 10', a: 'Ответ 10' }
+        ],
+        'Тема2': [
+          { q: 'Вопрос A', a: 'Ответ A' },
+          { q: 'Вопрос B', a: 'Ответ B' },
+          { q: 'Вопрос C', a: 'Ответ C' },
+          { q: 'Вопрос D', a: 'Ответ D' },
+          { q: 'Вопрос E', a: 'Ответ E' },
+          { q: 'Вопрос F', a: 'Ответ F' },
+          { q: 'Вопрос G', a: 'Ответ G' },
+          { q: 'Вопрос H', a: 'Ответ H' },
+          { q: 'Вопрос I', a: 'Ответ I' },
+          { q: 'Вопрос J', a: 'Ответ J' }
+        ],
+        'Тема3': [
+          { q: 'Задание 1', a: 'Решение 1' },
+          { q: 'Задание 2', a: 'Решение 2' },
+          { q: 'Задание 3', a: 'Решение 3' },
+          { q: 'Задание 4', a: 'Решение 4' },
+          { q: 'Задание 5', a: 'Решение 5' },
+          { q: 'Задание 6', a: 'Решение 6' },
+          { q: 'Задание 7', a: 'Решение 7' },
+          { q: 'Задание 8', a: 'Решение 8' },
+          { q: 'Задание 9', a: 'Решение 9' },
+          { q: 'Задание 10', a: 'Решение 10' }
+        ]
+      };
+
+      function selectClass(cls) {
+        currentClass = cls;
+        document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('selected'));
+        const btn = Array.from(document.querySelectorAll('.class-btn')).find(b => b.innerText.startsWith(cls + ' '));
+        if (btn) btn.classList.add('selected');
+        setTimeout(() => {
+          renderTopics();
+          showPage('page-2');
+        }, 300);
+      }
+
+      function goBack() { showPage('page-1'); }
+      function backToTopics() { showPage('page-2'); }
+      function backFromRegistration() { showPage('page-3'); }
+
+      function backFromQuestions() {
+        document.getElementById('back-from-questions').style.display = 'none';
+        showPage('page-3');
+      }
+
+      function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const page = document.getElementById(pageId);
+        if (page) {
+          page.classList.add('active');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+            let timerInterval;
+      let timeLeft = 600;
+
+      function startTimer(seconds) {
+        timeLeft = seconds;
+        const timerFill = document.getElementById('timer-fill');
+        const timerText = document.getElementById('timer-text');
+        if (!timerFill || !timerText) return;
+
+        // Сброс полосы прогресса
+        timerFill.style.width = '100%';
+
+        timerInterval = setInterval(() => {
+          const minutes = Math.floor(timeLeft / 60);
+          const secs = timeLeft % 60;
+          timerText.textContent = `Осталось времени: ${minutes}:${secs.toString().padStart(2, '0')}`;
+
+          const percent = (timeLeft / seconds) * 100;
+          timerFill.style.width = percent + '%';
+
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert('Время вышло! Нажмите "Сдать работу".');
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) submitBtn.click();
+          }
+          timeLeft--;
+        }, 1000);
+      }
+
+      function renderTopics() {
+        const list = document.getElementById('topics-list');
+        if (!list) return;
+        list.innerHTML = '';
+        const tList = topics[currentClass] || [];
+        tList.forEach(t => {
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerText = t;
+          div.onclick = () => selectTopic(t);
+          list.appendChild(div);
+        });
+      }
+
+      let selectedTopic = '';
+
+      function selectTopic(topic) {
+        selectedTopic = topic;
+        renderCards();
+        showPage('page-3');
+      }
+
+      function renderCards() {
+        const container = document.getElementById('cards-container');
+        if (!container) return;
+        container.innerHTML = '';
+        const header = document.getElementById('topic-header');
+        if (header) header.innerText = 'Тема: ' + selectedTopic;
+
+        for (let i = 1; i <= 10; i++) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <span class="card-number">${i}</span>
+            <span class="card-status">Жми, чтобы начать</span>
+          `;
+          card.onclick = () => openCard(i);
+          container.appendChild(card);
+        }
+      }
+
+      function openCard(cardNum) {
+        showPage('page-4');
+      }
+
+      function startWork() {
+        const name = document.getElementById('student-name')?.value.trim();
+        const letter = document.getElementById('class-letter')?.value.trim();
+
+        if (!name || !letter) {
+          alert('Пожалуйста, заполните все поля.');
+          return;
+        }
+
+        generateQuestions();
+        startTimer(600); // 10 минут
+        showPage('page-5');
+      }
+
+      function generateQuestions() {
+        const area = document.getElementById('questions-area');
+        if (!area) return;
+        area.innerHTML = '';
+        const qList = questionsDB[selectedTopic] || [];
+
+        // Перемешиваем и берём 6 вопросов
+        const shuffled = [...qList].sort(() => Math.random() - 0.5).slice(0, 6);
+
+        shuffled.forEach((qObj, idx) => {
+          const block = document.createElement('div');
+          block.className = 'question-block';
+          block.innerHTML = `
+            <span class="question-text">Вопрос ${idx + 1}: ${qObj.q}</span>
+            <textarea class="work-textarea" data-correct="${qObj.a}" placeholder="Напишите ответ..."></textarea>
+            <div class="error-msg">Ответ неверный</div>
+          `;
+          area.appendChild(block);
+        });
+      }
+
+      async function submitWork() {
+        clearInterval(timerInterval);
+
+        const blocks = document.querySelectorAll('.question-block');
+        let correctCount = 0;
+        let totalQuestions = blocks.length;
+        const resultDetails = []; // Сюда сохраняем детали по каждому вопросу
+
+        blocks.forEach(block => {
+          const textarea = block.querySelector('textarea');
+          const errorMsg = block.querySelector('.error-msg');
+          const correctAnswer = textarea.getAttribute('data-correct');
+          const answer = textarea?.value?.trim() || '';
+
+          // Простая проверка: совпадение текста (можно усложнить при необходимости)
+          const isCorrect = answer && answer.toLowerCase() === correctAnswer.toLowerCase();
+
+          if (!isCorrect) {
+            block.classList.add('has-error');
+            errorMsg.style.display = 'block';
+            resultDetails.push({
+              question: textarea.parentElement.querySelector('.question-text').textContent,
+              student: answer,
+              correct: correctAnswer,
+              status: 'ошибка'
+            });
+          } else {
+            block.classList.remove('has-error');
+            errorMsg.style.display = 'none';
+            correctCount++;
+            resultDetails.push({
+              question: textarea.parentElement.querySelector('.question-text').textContent,
+              student: answer,
+              correct: null,
+              status: 'верно'
+            });
+          }
+        });
+
+        const studentName = (document.getElementById('student-name').value || 'Неизвестный').trim();
+        const classLetter = (document.getElementById('class-letter').value || '').trim();
+        const className = currentClass ? currentClass + ' класс' : 'Не указан';
+        const scoreString = `${correctCount}/${totalQuestions}`;
+
+        const payload = {
+          student: studentName,
+          'class': `${className} ${classLetter}`.trim(),
+          topic: selectedTopic || 'Тема не выбрана',
+          score: scoreString
+        };
+
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Отправка...';
+        }
+
+        const resultArea = document.getElementById('result-area');
+        resultArea.style.display = 'block';
+        resultArea.className = correctCount === totalQuestions ? 'result-success' : 'result-fail';
+
+        // Сначала показываем локальный результат (сразу), потом пробуем отправить
+        renderLocalResult(correctCount, totalQuestions, resultDetails);
+
+        try {
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            body: buildFormData(payload)
+          });
+
+          const result = await response.json();
+
+          if (result.status === 'ok') {
+            resultArea.innerHTML += `<p style="margin-top:10px; font-weight:bold;">Данные успешно сохранены в таблице учителя.</p>`;
+          } else {
+            throw new Error('Ошибка сервера');
+          }
+        } catch (err) {
+          console.error('Не удалось отправить:', err);
+          saveToBuffer(payload);
+          resultArea.innerHTML += `
+            <p style="margin-top:10px; color:#777; font-size:14px;">
+              Нет интернета или ошибка сети. Работа сохранена в буфер и отправится при синхронизации.
+            </p>
+          `;
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Сдать работу';
+          }
+          document.getElementById('back-to-cards-btn').style.display = 'inline-block';
+        }
+      }
+
+      function renderLocalResult(correct, total, details) {
+        const resultArea = document.getElementById('result-area');
+        let html = `<h3>Результат работы</h3>
+                    <p>Вы ответили верно на <b>${correct} из ${total}</b> вопросов.</p>`;
+
+        if (details.length > 0) {
+          html += `<div style="margin-top:20px; border-top:1px solid #ddd; padding-top:15px;">
+                     <h4>Разбор ошибок:</h4>
+                     <ul style="line-height:1.6;">`;
+          details.forEach(d => {
+            if (d.status === 'ошибка') {
+              html += `<li><b>${d.question}</b><br>
+                         Ваш ответ: "${d.student || 'пусто'}".<br>
+                         Правильный ответ: "${d.correct}".</li>`;
+            }
+          });
+          html += `</ul></div>`;
+        }
+
+        resultArea.innerHTML = html;
+      }
+
+      function returnToCards() {
+        document.getElementById('back-from-questions').style.display = 'none';
+        showPage('page-3');
+      }
+
+      // --- Буфер для офлайн-работ (как у тебя было) ---
+      function saveToBuffer(payload) {
+        const buffer = JSON.parse(localStorage.getItem('offlineWorkBuffer') || '[]');
+        buffer.push({
+          id: Date.now(),
+          payload: payload,
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('offlineWorkBuffer', JSON.stringify(buffer));
+      }
+
+      async function syncOfflineBuffer() {
+        const btn = document.getElementById('sync-btn');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Синхронизация...';
+        }
+
+        const bufferStr = localStorage.getItem('offlineWorkBuffer');
+        const buffer = bufferStr ? JSON.parse(bufferStr) : [];
+
+        if (buffer.length === 0) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Синхронизировать';
+          }
+          return;
+        }
+
+        const successIds = [];
+
+        for (const item of buffer) {
+          try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+              method: 'POST',
+              body: buildFormData(item.payload)
+            });
+            const result = await response.json();
+            if (result.status === 'ok') {
+              successIds.push(item.id);
+            } else {
+              console.warn('Сервер вернул ошибку:', result);
+            }
+          } catch (err) {
+            console.warn('Не удалось отправить из буфера:', err);
+            break;
+          }
+        }
+
+        if (successIds.length > 0) {
+          const remaining = buffer.filter(i => !successIds.includes(i.id));
+          localStorage.setItem('offlineWorkBuffer', JSON.stringify(remaining));
+        }
+
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Синхронизировать';
+        }
+      }
+
+      function buildFormData(payload) {
+        const fd = new FormData();
+        fd.append('student', payload.student);
+        fd.append('class', payload['class']);
+        fd.append('topic', payload.topic);
+        fd.append('score', payload.score);
+        return fd;
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        syncOfflineBuffer();
+      });
+    </script>
+  </body>
+</html>
