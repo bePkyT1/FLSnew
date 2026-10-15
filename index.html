@@ -21,18 +21,17 @@
         color: var(--text);
       }
 
-      /* Исправленный стиль для страниц */
       .page {
         width: 100%;
         margin: 0 auto;
         min-height: 80vh;
-        display: none; /* По умолчанию все страницы скрыты */
+        display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
       }
       .active {
-        display: flex !important; /* Только активная страница показывается */
+        display: flex !important;
       }
 
       header {
@@ -158,6 +157,16 @@
         resize: vertical;
       }
       
+      /* Стили для ошибок в полях */
+      .has-error textarea { border-color: var(--error); }
+      .error-msg {
+        color: var(--error);
+        font-size: 13px;
+        margin-top: 5px;
+        display: none;
+      }
+      .has-error .error-msg { display: block; }
+
       .timer-container {
         width: 100%;
         max-width: 400px;
@@ -208,20 +217,19 @@
         cursor: pointer;
       }
 
-      #result-box {
-        margin-top: 20px;
+      #result-area {
+        margin-top: 30px;
         padding: 20px;
         border-radius: 8px;
-        text-align: center;
         display: none;
+        border: 1px solid transparent;
       }
-      .result-success {
-        background: #d1fae5;
-        color: #065f46;
-      }
-      .result-fail {
-        background: #fee2e2;
-        color: #991b1b;
+      .result-success { background-color: #d1fae5; color: #065f46; border-color: #10b981; }
+      .result-fail { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
+
+      #back-to-cards-btn {
+        display: none;
+        margin-top: 15px;
       }
     </style>
   </head>
@@ -280,17 +288,20 @@
       <div id="questions-area"></div>
       
       <div class="actions">
+        <p id="error-summary" style="color: var(--error); display:none; margin-bottom:10px;">Не заполнены все поля. Проверьте вопросы ниже.</p>
         <button id="submit-btn" class="btn-primary" onclick="submitWork()">Сдать работу</button>
         <button id="sync-btn" class="btn-back" onclick="syncOfflineBuffer()">🔄 Синхронизировать (офлайн‑работы)</button>
         <button id="back-from-questions" class="btn-back" style="display:none;" onclick="backFromQuestions()">← Назад к карточкам</button>
       </div>
 
-      <div id="result-box"></div>
+      <!-- Блок с результатами проверки -->
+      <div id="result-area"></div>
+      <button id="back-to-cards-btn" class="btn-back" onclick="returnToCards()">Вернуться к карточкам</button>
     </div>
 
     <script>
       // !!! ВСТАВЬ СЮДА СВОЮ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT (заканчивается на /exec) !!!
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJexBZPlWtB64GJe7KL_1ULY3vGKJadQkkwVs6Vx1I3FFV14HtMfHIsl-tbo7OYqqI/exec';
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0XjKHcsikQC_mj16_wCbY8DATUpE11mSdVIG8EV7seW068u0iMDZjGCs2pKvCtfP_/exec';
 
       let currentClass = null;
       const topics = {
@@ -300,71 +311,51 @@
         11: ['Тема1', 'Тема2', 'Тема3']
       };
 
+      // Исправленные вопросы и правильные ответы (без дублей)
       const questionsDB = {
-  'Тема1': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема2': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема3': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема1': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема2': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема3': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема1': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема2': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема3': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема1': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема2': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ],
-  'Тема3': [
-    'Вопрос 1', 'Вопрос 2', 'Вопрос 3', 'Вопрос 4', 'Вопрос 5',
-    'Вопрос 6', 'Вопрос 7', 'Вопрос 8', 'Вопрос 9', 'Вопрос 10'
-  ]
-};
-
-
-      function isAnswerCorrect(question, answer) {
-        return answer && answer.trim() !== '';
-      }
+        'Тема1': [
+          { q: 'Вопрос 1', a: 'Ответ 1' },
+          { q: 'Вопрос 2', a: 'Ответ 2' },
+          { q: 'Вопрос 3', a: 'Ответ 3' },
+          { q: 'Вопрос 4', a: 'Ответ 4' },
+          { q: 'Вопрос 5', a: 'Ответ 5' },
+          { q: 'Вопрос 6', a: 'Ответ 6' },
+          { q: 'Вопрос 7', a: 'Ответ 7' },
+          { q: 'Вопрос 8', a: 'Ответ 8' },
+          { q: 'Вопрос 9', a: 'Ответ 9' },
+          { q: 'Вопрос 10', a: 'Ответ 10' }
+        ],
+        'Тема2': [
+          { q: 'Вопрос A', a: 'Ответ A' },
+          { q: 'Вопрос B', a: 'Ответ B' },
+          { q: 'Вопрос C', a: 'Ответ C' },
+          { q: 'Вопрос D', a: 'Ответ D' },
+          { q: 'Вопрос E', a: 'Ответ E' },
+          { q: 'Вопрос F', a: 'Ответ F' },
+          { q: 'Вопрос G', a: 'Ответ G' },
+          { q: 'Вопрос H', a: 'Ответ H' },
+          { q: 'Вопрос I', a: 'Ответ I' },
+          { q: 'Вопрос J', a: 'Ответ J' }
+        ],
+        'Тема3': [
+          { q: 'Задание 1', a: 'Решение 1' },
+          { q: 'Задание 2', a: 'Решение 2' },
+          { q: 'Задание 3', a: 'Решение 3' },
+          { q: 'Задание 4', a: 'Решение 4' },
+          { q: 'Задание 5', a: 'Решение 5' },
+          { q: 'Задание 6', a: 'Решение 6' },
+          { q: 'Задание 7', a: 'Решение 7' },
+          { q: 'Задание 8', a: 'Решение 8' },
+          { q: 'Задание 9', a: 'Решение 9' },
+          { q: 'Задание 10', a: 'Решение 10' }
+        ]
+      };
 
       function selectClass(cls) {
-        console.log('Кнопка нажата, класс:', cls);
         currentClass = cls;
-        
         document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('selected'));
-        
         const btn = Array.from(document.querySelectorAll('.class-btn')).find(b => b.innerText.startsWith(cls + ' '));
         if (btn) btn.classList.add('selected');
-
         setTimeout(() => {
           renderTopics();
           showPage('page-2');
@@ -373,7 +364,7 @@
 
       function goBack() { showPage('page-1'); }
       function backToTopics() { showPage('page-2'); }
-            function backFromRegistration() { showPage('page-3'); }
+      function backFromRegistration() { showPage('page-3'); }
 
       function backFromQuestions() {
         document.getElementById('back-from-questions').style.display = 'none';
@@ -385,15 +376,11 @@
         const page = document.getElementById(pageId);
         if (page) {
           page.classList.add('active');
-          // Плавная прокрутка вверх при переключении страницы
           window.scrollTo({ top: 0, behavior: 'smooth' });
-          console.log('Показана страница:', pageId);
-        } else {
-          console.error('Страница не найдена:', pageId);
         }
       }
 
-      let timerInterval;
+            let timerInterval;
       let timeLeft = 600;
 
       function startTimer(seconds) {
@@ -402,10 +389,14 @@
         const timerText = document.getElementById('timer-text');
         if (!timerFill || !timerText) return;
 
+        // Сброс полосы прогресса
+        timerFill.style.width = '100%';
+
         timerInterval = setInterval(() => {
           const minutes = Math.floor(timeLeft / 60);
           const secs = timeLeft % 60;
-          timerText.textContent = `Осталось времени: ${minutes}:${secs.toString().padStart(2,'0')}`;
+          timerText.textContent = `Осталось времени: ${minutes}:${secs.toString().padStart(2, '0')}`;
+
           const percent = (timeLeft / seconds) * 100;
           timerFill.style.width = percent + '%';
 
@@ -474,7 +465,7 @@
         }
 
         generateQuestions();
-        startTimer(600);
+        startTimer(600); // 10 минут
         showPage('page-5');
       }
 
@@ -484,31 +475,58 @@
         area.innerHTML = '';
         const qList = questionsDB[selectedTopic] || [];
 
+        // Перемешиваем и берём 6 вопросов
         const shuffled = [...qList].sort(() => Math.random() - 0.5).slice(0, 6);
 
-        shuffled.forEach((q, idx) => {
+        shuffled.forEach((qObj, idx) => {
           const block = document.createElement('div');
           block.className = 'question-block';
           block.innerHTML = `
-            <span class="question-text">Вопрос ${idx + 1}: ${q}</span>
-            <textarea class="work-textarea" data-question="${q}" placeholder="Напишите ответ..."></textarea>
+            <span class="question-text">Вопрос ${idx + 1}: ${qObj.q}</span>
+            <textarea class="work-textarea" data-correct="${qObj.a}" placeholder="Напишите ответ..."></textarea>
+            <div class="error-msg">Ответ неверный</div>
           `;
           area.appendChild(block);
         });
       }
 
-                  async function submitWork() {
+      async function submitWork() {
         clearInterval(timerInterval);
 
         const blocks = document.querySelectorAll('.question-block');
         let correctCount = 0;
         let totalQuestions = blocks.length;
+        const resultDetails = []; // Сюда сохраняем детали по каждому вопросу
 
         blocks.forEach(block => {
           const textarea = block.querySelector('textarea');
-          if (!textarea) return;
-          const answer = textarea.value.trim();
-          if (answer !== '') correctCount++;
+          const errorMsg = block.querySelector('.error-msg');
+          const correctAnswer = textarea.getAttribute('data-correct');
+          const answer = textarea?.value?.trim() || '';
+
+          // Простая проверка: совпадение текста (можно усложнить при необходимости)
+          const isCorrect = answer && answer.toLowerCase() === correctAnswer.toLowerCase();
+
+          if (!isCorrect) {
+            block.classList.add('has-error');
+            errorMsg.style.display = 'block';
+            resultDetails.push({
+              question: textarea.parentElement.querySelector('.question-text').textContent,
+              student: answer,
+              correct: correctAnswer,
+              status: 'ошибка'
+            });
+          } else {
+            block.classList.remove('has-error');
+            errorMsg.style.display = 'none';
+            correctCount++;
+            resultDetails.push({
+              question: textarea.parentElement.querySelector('.question-text').textContent,
+              student: answer,
+              correct: null,
+              status: 'верно'
+            });
+          }
         });
 
         const studentName = (document.getElementById('student-name').value || 'Неизвестный').trim();
@@ -516,7 +534,6 @@
         const className = currentClass ? currentClass + ' класс' : 'Не указан';
         const scoreString = `${correctCount}/${totalQuestions}`;
 
-        // Формируем объект с данными (payload)
         const payload = {
           student: studentName,
           'class': `${className} ${classLetter}`.trim(),
@@ -530,6 +547,13 @@
           submitBtn.textContent = 'Отправка...';
         }
 
+        const resultArea = document.getElementById('result-area');
+        resultArea.style.display = 'block';
+        resultArea.className = correctCount === totalQuestions ? 'result-success' : 'result-fail';
+
+        // Сначала показываем локальный результат (сразу), потом пробуем отправить
+        renderLocalResult(correctCount, totalQuestions, resultDetails);
+
         try {
           const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -539,112 +563,126 @@
           const result = await response.json();
 
           if (result.status === 'ok') {
-            const resBox = document.getElementById('result-box');
-            resBox.style.display = 'block';
-            resBox.className = 'result-success';
-            resBox.innerHTML = `<h3>Работа успешно сдана!</h3><p>Результаты сохранены в общей таблице учителя.</p>`;
-            if (submitBtn) submitBtn.style.display = 'none';
+            resultArea.innerHTML += `<p style="margin-top:10px; font-weight:bold;">Данные успешно сохранены в таблице учителя.</p>`;
           } else {
             throw new Error('Ошибка сервера');
           }
         } catch (err) {
-          console.error('Не удалось отправить (возможно, нет сети):', err);
-          // Сохраняем в буфер, если отправка не удалась
+          console.error('Не удалось отправить:', err);
           saveToBuffer(payload);
-
-          const resBox = document.getElementById('result-box');
-          resBox.style.display = 'block';
-          resBox.className = 'result-fail';
-          resBox.innerHTML = `
-            <h3>Не удалось отправить сейчас</h3>
-            <p>Нет интернета или ошибка сети. Работа сохранена в буфер.</p>
-            <p style="color: #555; font-size: 14px;">Данные отправятся автоматически, когда появится связь, или нажмите кнопку «Синхронизировать».</p>
+          resultArea.innerHTML += `
+            <p style="margin-top:10px; color:#777; font-size:14px;">
+              Нет интернета или ошибка сети. Работа сохранена в буфер и отправится при синхронизации.
+            </p>
           `;
+        } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Сдать работу';
           }
+          document.getElementById('back-to-cards-btn').style.display = 'inline-block';
         }
       }
-         // Сохраняем неотправленную работу в localStorage
-function saveToBuffer(payload) {
-  const buffer = JSON.parse(localStorage.getItem('offlineWorkBuffer') || '[]');
-  buffer.push({
-    id: Date.now(),
-    payload: payload,
-    timestamp: new Date().toISOString()
-  });
-  localStorage.setItem('offlineWorkBuffer', JSON.stringify(buffer));
-  console.log('Работа сохранена в офлайн-буфер:', payload);
-}
 
-// Пытаемся отправить все из буфера
-async function syncOfflineBuffer() {
-  const btn = document.getElementById('sync-btn');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = 'Синхронизация...';
-  }
+      function renderLocalResult(correct, total, details) {
+        const resultArea = document.getElementById('result-area');
+        let html = `<h3>Результат работы</h3>
+                    <p>Вы ответили верно на <b>${correct} из ${total}</b> вопросов.</p>`;
 
-  const bufferStr = localStorage.getItem('offlineWorkBuffer');
-  const buffer = bufferStr ? JSON.parse(bufferStr) : [];
+        if (details.length > 0) {
+          html += `<div style="margin-top:20px; border-top:1px solid #ddd; padding-top:15px;">
+                     <h4>Разбор ошибок:</h4>
+                     <ul style="line-height:1.6;">`;
+          details.forEach(d => {
+            if (d.status === 'ошибка') {
+              html += `<li><b>${d.question}</b><br>
+                         Ваш ответ: "${d.student || 'пусто'}".<br>
+                         Правильный ответ: "${d.correct}".</li>`;
+            }
+          });
+          html += `</ul></div>`;
+        }
 
-  // Если буфер пуст — сразу выходим, чтобы не слать лишние запросы
-  if (buffer.length === 0) {
-    console.log('Буфер пуст, синхронизация не требуется');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'Синхронизировать';
-    }
-    return;
-  }
-
-  const successIds = [];
-
-  for (const item of buffer) {
-    try {
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        body: buildFormData(item.payload)
-      });
-      const result = await response.json();
-      if (result.status === 'ok') {
-        successIds.push(item.id);
-        console.log('Успешно отправлена работа из буфера (id:', item.id, ')');
-      } else {
-        console.warn('Сервер вернул ошибку для работы из буфера:', result);
+        resultArea.innerHTML = html;
       }
-    } catch (err) {
-      console.warn('Не удалось отправить работу из буфера (нет сети):', err);
-      break; // Прерываем, чтобы не спамить запросами, если сети нет
-    }
-  }
 
-  if (successIds.length > 0) {
-    const remaining = buffer.filter(i => !successIds.includes(i.id));
-    localStorage.setItem('offlineWorkBuffer', JSON.stringify(remaining));
-    console.log('Буфер очищен от успешно отправленных работ.');
-  }
+      function returnToCards() {
+        document.getElementById('back-from-questions').style.display = 'none';
+        showPage('page-3');
+      }
 
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = 'Синхронизировать';
-  }
-}
+      // --- Буфер для офлайн-работ (как у тебя было) ---
+      function saveToBuffer(payload) {
+        const buffer = JSON.parse(localStorage.getItem('offlineWorkBuffer') || '[]');
+        buffer.push({
+          id: Date.now(),
+          payload: payload,
+          timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('offlineWorkBuffer', JSON.stringify(buffer));
+      }
 
+      async function syncOfflineBuffer() {
+        const btn = document.getElementById('sync-btn');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Синхронизация...';
+        }
 
-// Вспомогательная функция: превращает payload в FormData (как мы делали раньше)
-function buildFormData(payload) {
-  const fd = new FormData();
-  fd.append('student', payload.student);
-  fd.append('class', payload['class']);
-  fd.append('topic', payload.topic);
-  fd.append('score', payload.score);
-  return fd;
-}
-window.addEventListener('DOMContentLoaded', () => {
-  syncOfflineBuffer(); // Пытаемся сразу отправить всё, что накопилось
-});
+        const bufferStr = localStorage.getItem('offlineWorkBuffer');
+        const buffer = bufferStr ? JSON.parse(bufferStr) : [];
+
+        if (buffer.length === 0) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Синхронизировать';
+          }
+          return;
+        }
+
+        const successIds = [];
+
+        for (const item of buffer) {
+          try {
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+              method: 'POST',
+              body: buildFormData(item.payload)
+            });
+            const result = await response.json();
+            if (result.status === 'ok') {
+              successIds.push(item.id);
+            } else {
+              console.warn('Сервер вернул ошибку:', result);
+            }
+          } catch (err) {
+            console.warn('Не удалось отправить из буфера:', err);
+            break;
+          }
+        }
+
+        if (successIds.length > 0) {
+          const remaining = buffer.filter(i => !successIds.includes(i.id));
+          localStorage.setItem('offlineWorkBuffer', JSON.stringify(remaining));
+        }
+
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Синхронизировать';
+        }
+      }
+
+      function buildFormData(payload) {
+        const fd = new FormData();
+        fd.append('student', payload.student);
+        fd.append('class', payload['class']);
+        fd.append('topic', payload.topic);
+        fd.append('score', payload.score);
+        return fd;
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        syncOfflineBuffer();
+      });
     </script>
   </body>
 </html>
